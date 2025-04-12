@@ -42,6 +42,7 @@ pom.xml.tag
 .env
 application*.yml
 application*.properties
+secrets
 
 # Others
 .DS_Store
