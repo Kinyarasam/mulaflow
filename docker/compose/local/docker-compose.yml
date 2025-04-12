@@ -1,0 +1,34 @@
+services:
+  mulaflow:
+    build: 
+      context: ../../..
+      args:
+        - SPRING_PROFILES_ACTIVE=local
+    environment:
+      - DD_ENV=local
+      - DD_AGENT_HOST=host.docker.internal
+      - DD_TRACE_AGENT_PORT=8126
+      - MANAGEMENT_METRICS_EXPORT_DATADOG_URI=http://host.docker.internal:8080
+      - SPRING_CONFIG_IMPORT=file:/run/secrets/application-secrets.properties
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/mulaflow
+      - SPRING_DATASOURCE_USERNAME=dbuser
+    secrets:
+      - source: app_secrets
+        target: /run/secrets/application-secrets.properties
+      - source: datadog_api_key
+        target: /run/secrets/datadog_api_key.txt
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+secrets:
+  app_secrets:
+    file: ./secrets/application-secrets.properties
+  db_password:
+    file: ./secrets/db_password.txt
+  datadog_api_key:
+    file: ./secrets/datadog_api_key.txt
+
+volumes:
+  pgdata:

@@ -1,0 +1,14 @@
+.git
+.gitignore
+target
+*.iml
+.idea
+*.md
+Dockerfile
+docker-compose.yml
+
+.env
+application*.yml
+application*.properties
+
+secrets
