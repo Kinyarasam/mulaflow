@@ -58,6 +58,8 @@ jobs:
           STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
+          DEPLOYMENT_TAG: staging
 
         run: |
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} pull
