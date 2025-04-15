@@ -8,6 +8,7 @@ on:
 
 env:
   DOCKER_IMAGE: mulaflow
+  DOCKER_COMPOSE_FILE: docker/compose/staging/docker-compose.yml
 
 jobs:
   build:
@@ -51,6 +52,13 @@ jobs:
           && chmod +x /usr/local/bin/docker-compose
       
       - name: Deploy to Staging
+        env:
+          STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
+          STAGING_DB_USERNAME: ${{ secrets.STAGING_DB_USERNAME }}
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+
         run: |
-          docker-compose -f docker/compose/staging/docker-compose.yml pull
-          docker-compose -f docker/compose/staging/docker-compose.yml up -d
+          docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} pull
+          docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d

@@ -1,14 +1,17 @@
 services:
   mulaflow:
-    build: 
-      context: ../../..
-      args:
-        - SPRING_PROFILES_ACTIVE=local
+    image: ${DOCKER_HUB_USERNAME}
+    restart: unless-stopped
+    # build: 
+    #   context: ../../..
+    #   args:
+    #     - SPRING_PROFILES_ACTIVE=staging
     environment:
       - DD_ENV=local
       - SPRING_CONFIG_IMPORT=file:/run/secrets/application-secrets.properties
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mulaflow
-      - SPRING_DATASOURCE_USERNAME=dbuser
+      - SPRING_DATASOURCE_URL=${{ secrets.STAGING_DB_URL }}
+      - SPRING_DATASOURCE_USERNAME=${{ secrets.STAGING_DB_USERNAME }}
+      - SPRING_DATASOURCE_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
     secrets:
       - source: app_secrets
         target: /run/secrets/application-secrets.properties
@@ -16,27 +19,6 @@ services:
         target: /run/secrets/datadog_api_key.txt
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: mulaflow
-      POSTGRES_USER: dbuser
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_password.txt
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dbuser -d mulaflow"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    secrets:
-      - source: db_password
-        target: /run/secrets/db_password.txt
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./secrets:/run/secrets:ro
 
 secrets:
   app_secrets:
@@ -45,6 +27,7 @@ secrets:
     file: ./secrets/db_password.txt
   datadog_api_key:
     file: ./secrets/datadog_api_key.txt
+  
 
 volumes:
   pgdata:
