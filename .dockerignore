@@ -9,6 +9,6 @@ docker-compose.yml
 
 .env
 application*.yml
-application*.properties
+application.properties
 
 secrets
