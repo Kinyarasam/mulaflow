@@ -6,9 +6,9 @@ services:
       - DD_ENV=staging
       - SPRING_PROFILES_ACTIVE=staging
       - SPRING_CONFIG_IMPORT=file:/run/secrets/application-secrets.properties
-      - SPRING_DATASOURCE_URL=${STAGING_DB_URL }
-      - SPRING_DATASOURCE_USERNAME=${STAGING_DB_USERNAME }
-      - SPRING_DATASOURCE_PASSWORD=${STAGING_DB_PASSWORD }
+      - SPRING_DATASOURCE_URL=${STAGING_DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${STAGING_DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${STAGING_DB_PASSWORD}
       - DD_API_KEY=${DATADOG_API_KEY}
     secrets:
       - source: app_secrets
