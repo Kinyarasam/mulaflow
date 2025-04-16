@@ -11,4 +11,4 @@ docker-compose.yml
 application*.yml
 application.properties
 
-secrets
+# secrets
