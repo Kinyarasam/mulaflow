@@ -2,6 +2,7 @@ services:
   - type: web
     name: mulaflow-staging
     runtime: docker
+    dockerComposeFile: docker/compose/staging/docker-compose.yml
     env: docker
     branch: staging
     plan: free

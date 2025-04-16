@@ -82,27 +82,32 @@ jobs:
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} pull
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
 
-      - name: Trigger Render Deployment
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.RENDER_STAGING_TOKEN }}" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
-            -d '{
-              "clearCache": "clear"
-            }'
+      # - name: Trigger Render Deployment
+      #   run: |
+      #     curl -X POST \
+      #       -H "Authorization: Bearer ${{ secrets.RENDER_STAGING_TOKEN }}" \
+      #       -H "Accept: application/json" \
+      #       -H "Content-Type: application/json" \
+      #       "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
+      #       -d '{
+      #         "clearCache": "clear"
+      #       }'
 
-  # deploy-to-render:
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   environment: staging
-  #   steps:
-  #     - uses: actions/checkout@v4
+  deploy-to-render:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
       
-  #     - name: Deploy to Render
-  #       uses: actions-hub/render@2.0.0
-  #       with:
-  #         render-token: ${{ secrets.RENDER_STAGING_TOKEN }}
-  #         service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
-  #         docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+      - name: Deploy to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.5
+        with:
+          api_key: ${{ secrets.RENDER_STAGING_TOKEN }}
+          service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+          docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+          clear_cache: true
+          wait_deploy: true
+          github_deployment: true
+          deployment_environment: 'staging'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
