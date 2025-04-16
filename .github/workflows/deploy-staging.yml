@@ -51,6 +51,8 @@ jobs:
           mkdir -p docker/compose/staging/secrets
           echo "Creating application-secrets.properties with environment variables"
           cat <<EOF > docker/compose/staging/secrets/application-secrets.properties
+          spring.application.name=mulaflow
+
           # Database configuration
           spring.datasource.url=${STAGING_DB_URL}
           spring.datasource.username=${STAGING_DB_USERNAME}
@@ -59,13 +61,6 @@ jobs:
           # Other secrets
           datadog.api.key=${DATADOG_API_KEY}
           EOF
-
-          echo "Creating application.properties with environment variables"
-          cat <<EOF > src/main/resources/application.properties
-          spring.application.name=mulaflow
-          spring.config.import=optional:file:./config/application-secrets.properties
-          EOF
-
       
       - name: Install Docker Compose
         run: |
