@@ -99,7 +99,7 @@ jobs:
     uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
     needs: test
     with:
-      app_name: ${{ env.DOCKER_IMAGE }}
+      app_name: '${{ env.DOCKER_IMAGE }}'
       docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
     secrets:
       docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
