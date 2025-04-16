@@ -92,20 +92,19 @@ jobs:
       #       }'
 
   test:
-    needs: lint
+    needs: build
     uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
 
   publish:
-    uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
     needs: test
+    uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
     with:
       app_name: 'mulaflow'
       docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
-    secrets:
       docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
   deploy-to-render:
-    needs: build
+    needs: publish
     runs-on: ubuntu-latest
     environment: staging
     steps:
