@@ -39,14 +39,6 @@ jobs:
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
 
-  # publish:
-  #   needs: build
-  #   uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
-  #   with:
-  #     app_name: 'mulaflow'
-  #     docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
-  #     docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -69,7 +61,7 @@ jobs:
           EOF
 
           echo "Creating application.properties with environment variables"
-          cat <<EOF >
+          cat <<EOF > src/main/resources/application.properties
           spring.application.name=mulaflow
           spring.config.import=optional:file:./config/application-secrets.properties
           EOF
@@ -95,27 +87,8 @@ jobs:
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} pull
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
 
-      # - name: Trigger Render Deployment
-      #   run: |
-      #     curl -X POST \
-      #       -H "Authorization: Bearer ${{ secrets.RENDER_STAGING_TOKEN }}" \
-      #       -H "Accept: application/json" \
-      #       -H "Content-Type: application/json" \
-      #       "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys" \
-      #       -d '{
-      #         "clearCache": "clear"
-      #       }'
-
-      # - name: Deploy to Render
-      #   uses: gh-actions-workflows/deploy-docker-render@v1.1
-      #   with:
-      #     deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-      #     render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
-      #     wait-for-deployment: true
-
-
   deploy-to-render:
-    needs: build
+    needs: deploy
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
@@ -129,32 +102,3 @@ jobs:
             }' \
             "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys"
           # ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
-
-        # uses: render-oss/deploy-docker-render@v1
-        # with:
-        #   service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
-        #   docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
-        #   render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }} 
-        #   clear-cache: clear 
-        #   wait-for-deployment: true
-
-
-
-
-  # deploy-to-render:
-  #   needs: publish
-  #   runs-on: ubuntu-latest
-  #   environment: staging
-  #   steps:
-  #     - uses: actions/checkout@v4
-      
-
-
-          # api_key: ${{ secrets.RENDER_STAGING_TOKEN }}
-          # service_id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
-          # # docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
-          # clear_cache: true
-          # wait_deploy: true
-          # github_deployment: true
-          # deployment_environment: 'staging'
-          # github_token: ${{ secrets.GITHUB_TOKEN }}
