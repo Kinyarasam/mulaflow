@@ -133,7 +133,7 @@ jobs:
           echo "status=timeout" >> $GITHUB_OUTPUT
           exit 1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
 
       - name: Update GitHub with deployment URL
         if: steps.render-deploy.outputs.status == 'success'
@@ -141,7 +141,7 @@ jobs:
           echo "Deployment URL: ${{ steps.render-deploy.outputs.deploy_url }}"
           # Create a deployment status
           curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets._GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{
               "state": "success",
@@ -157,7 +157,7 @@ jobs:
           echo "Deployment failed with status: ${{ steps.render-deploy.outputs.status }}"
           # Create a failed deployment status
           curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets._GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{
               "state": "failure",
