@@ -67,6 +67,13 @@ jobs:
           # Other secrets
           datadog.api.key=${DATADOG_API_KEY}
           EOF
+
+          echo "Creating application.properties with environment variables"
+          cat <<EOF >
+          spring.application.name=mulaflow
+          spring.config.import=optional:file:./config/application-secrets.properties
+          EOF
+
       
       - name: Install Docker Compose
         run: |
