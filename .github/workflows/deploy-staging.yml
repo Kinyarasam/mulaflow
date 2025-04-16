@@ -44,6 +44,20 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
+
+      - name: Create secrets directory
+        run: |
+          mkdir -p docker/compose/staging/secrets
+          echo "Creating application-secrets.properties with environment variables"
+          cat <<EOF > docker/compose/staging/secrets/application-secrets.properties
+          # Database configuration
+          spring.datasource.url=${STAGING_DB_URL}
+          spring.datasource.username=${STAGING_DB_USERNAME}
+          spring.datasource.password=${STAGING_DB_PASSWORD}
+          
+          # Other secrets
+          datadog.api.key=${DATADOG_API_KEY}
+          EOF
       
       - name: Install Docker Compose
         run: |
