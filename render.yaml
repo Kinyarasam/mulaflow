@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mulaflow-staging
+    runtime: docker
+    env: docker
+    branch: staging
+    plan: free
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: staging
+      - key: SPRING_DATASOURCE_URL
+        value: ${{ secrets.STAGING_DB_URL }}
+      - key: SPRING_DATASOURCE_USERNAME
+        value: ${{ secrets.STAGING_DB_USERNAME }}
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ${{ secrets.STAGING_DB_PASSWORD }}
