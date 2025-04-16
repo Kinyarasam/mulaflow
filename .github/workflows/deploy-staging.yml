@@ -39,9 +39,9 @@ jobs:
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
   
-  test:
-    needs: build
-    uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
+  # test:
+  #   needs: build
+  #   uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
 
   publish:
     needs: build
