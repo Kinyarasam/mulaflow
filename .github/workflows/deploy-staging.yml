@@ -93,6 +93,19 @@ jobs:
       #         "clearCache": "clear"
       #       }'
 
+  test:
+    needs: lint
+    uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
+
+  publish:
+    uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
+    needs: test
+    with:
+      app_name: ${{ env.DOCKER_IMAGE }}
+      docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME}}
+    secrets:
+      docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
   deploy-to-render:
     needs: build
     runs-on: ubuntu-latest
@@ -104,7 +117,7 @@ jobs:
         uses: gh-actions-workflows/deploy-docker-render@v1.1
         with:
           deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-          image-url: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+          image-url: ${{ needs.publish.outputs.image_name }}
           render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
           wait-for-deployment: true
 
