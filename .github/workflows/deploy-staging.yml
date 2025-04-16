@@ -92,13 +92,22 @@ jobs:
       #       }'
 
       - name: Deploy to Render
-        uses: render-oss/deploy-docker-render@v1
+        uses: gh-actions-workflows/deploy-docker-render@v1.1
         with:
-          service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
-          docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
-          render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }} 
-          clear-cache: clear 
+          deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+          image-url: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+          render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
           wait-for-deployment: true
+
+        # uses: render-oss/deploy-docker-render@v1
+        # with:
+        #   service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+        #   docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+        #   render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }} 
+        #   clear-cache: clear 
+        #   wait-for-deployment: true
+
+
 
   # test:
   #   needs: build
@@ -119,14 +128,6 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v4
       
-      
-
-        # uses: gh-actions-workflows/deploy-docker-render@v1.1
-        # with:
-        #   deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-        #   image-url: ${{ needs.publish.outputs.image_name }}
-        #   render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
-        #   wait-for-deployment: true
 
 
           # api_key: ${{ secrets.RENDER_STAGING_TOKEN }}
