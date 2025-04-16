@@ -87,13 +87,99 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Render
+        id: render-deploy
         run: |
-          curl -X POST \
+          response=$(curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{
               "serviceId": "${{ secrets.RENDER_STAGING_SERVICE_ID }}",
               "image": "${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}"
             }' \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys"
-          # ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys")
+          
+          # Extract deployment ID and URL
+          deploy_id=$(echo "$response" | jq -r '.id')
+          deploy_url=$(echo "$response" | jq -r '.service.serviceDetails.url')
+          
+          # Save outputs for subsequent steps
+          echo "deploy_id=$deploy_id" >> $GITHUB_OUTPUT
+          echo "deploy_url=$deploy_url" >> $GITHUB_OUTPUT
+          
+          # Wait for deployment completion (adjust timeout as needed)
+          timeout=300  # 5 minutes
+          interval=10
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            status=$(curl -s -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+              "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys/$deploy_id" | jq -r '.status')
+            
+            if [ "$status" = "live" ]; then
+              echo "Deployment successful!"
+              echo "status=success" >> $GITHUB_OUTPUT
+              exit 0
+            elif [ "$status" = "failed" ]; then
+              echo "Deployment failed!"
+              echo "status=failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            
+            sleep $interval
+            elapsed=$((elapsed + interval))
+            echo "Waiting for deployment to complete... ($elapsed/$timeout seconds)"
+          done
+          
+          echo "Deployment timed out!"
+          echo "status=timeout" >> $GITHUB_OUTPUT
+          exit 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update GitHub with deployment URL
+        if: steps.render-deploy.outputs.status == 'success'
+        run: |
+          echo "Deployment URL: ${{ steps.render-deploy.outputs.deploy_url }}"
+          # Create a deployment status
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "state": "success",
+              "target_url": "${{ steps.render-deploy.outputs.deploy_url }}",
+              "description": "Deployed to Render",
+              "environment": "staging"
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/deployments/${{ github.run_id }}/statuses"
+
+      - name: Notify on failure
+        if: steps.render-deploy.outputs.status != 'success'
+        run: |
+          echo "Deployment failed with status: ${{ steps.render-deploy.outputs.status }}"
+          # Create a failed deployment status
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "state": "failure",
+              "description": "Render deployment failed",
+              "environment": "staging"
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/deployments/${{ github.run_id }}/statuses"
+          exit 1
+
+  # deploy-to-render:
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Deploy to Render
+  #       run: |
+  #         curl -X POST \
+  #           -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+  #           -H "Content-Type: application/json" \
+  #           -d '{
+  #             "serviceId": "${{ secrets.RENDER_STAGING_SERVICE_ID }}",
+  #             "image": "${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}"
+  #           }' \
+  #           "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys"
+
+  
