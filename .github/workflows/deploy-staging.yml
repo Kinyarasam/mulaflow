@@ -102,7 +102,7 @@ jobs:
     needs: test
     with:
       app_name: ${{ env.DOCKER_IMAGE }}
-      docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME}}
+      docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
     secrets:
       docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
