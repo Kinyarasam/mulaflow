@@ -103,14 +103,9 @@ jobs:
         uses: gh-actions-workflows/deploy-docker-render@v1.1
         with:
           deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-          # image-url: ${{ env.DOCKER_IMAGE }}
           render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
           wait-for-deployment: true
-          docker-repo-prefix: docker.io
-        env:
-          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-          DEPLOYMENT_TAG: ${{ env.DEPLOYMENT_TAG }}
-          
+
           # ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
         # uses: render-oss/deploy-docker-render@v1
         # with:
