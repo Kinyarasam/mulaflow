@@ -123,6 +123,10 @@ jobs:
               echo "Deployment failed!"
               echo "status=failed" >> $GITHUB_OUTPUT
               exit 1
+            elif [ "$status" = "update_failed" ]; then
+              echo "Deployment failed!"
+              echo "status=failed" >> $GITHUB_OUTPUT
+              exit 1
             fi
             
             sleep $interval
