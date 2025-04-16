@@ -38,9 +38,21 @@ jobs:
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
-
-  deploy-to-docker:
+  
+  test:
     needs: build
+    uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
+
+  publish:
+    needs: test
+    uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
+    with:
+      app_name: 'mulaflow'
+      docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
+      docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+  deploy:
+    needs: publish
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -95,10 +107,11 @@ jobs:
         uses: gh-actions-workflows/deploy-docker-render@v1.1
         with:
           deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-          image-url: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+          image-url: ${{ needs.publish.outputs.image_name }}
           render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
           wait-for-deployment: true
-
+          
+          # ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
         # uses: render-oss/deploy-docker-render@v1
         # with:
         #   service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
@@ -109,17 +122,6 @@ jobs:
 
 
 
-  # test:
-  #   needs: build
-  #   uses: gh-actions-workflows/python-workflows/.github/workflows/pytest.yaml@master
-
-  # publish:
-  #   needs: test
-  #   uses: gh-actions-workflows/docker-workflows/.github/workflows/docker-publish.yaml@master
-  #   with:
-  #     app_name: 'mulaflow'
-  #     docker_hub_user: ${{ secrets.DOCKER_HUB_USERNAME }}
-  #     docker_hub_password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
   # deploy-to-render:
   #   needs: publish
