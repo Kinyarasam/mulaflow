@@ -8,6 +8,7 @@ on:
 
 env:
   DOCKER_IMAGE: mulaflow
+  DEPLOYMENT_TAG: staging
   DOCKER_COMPOSE_FILE: docker/compose/staging/docker-compose.yml
 
 jobs:
@@ -35,10 +36,10 @@ jobs:
       - name: Push to Docker Hub
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_TOKEN }}
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:staging
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
 
-  deploy-staging:
+  deploy-to-docker:
     needs: build
     runs-on: ubuntu-latest
     environment: staging
@@ -73,8 +74,22 @@ jobs:
           DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-          DEPLOYMENT_TAG: staging
+          DEPLOYMENT_TAG: ${{ env.DEPLOYMENT_TAG }}
 
         run: |
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} pull
           docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} up -d
+
+  deploy-to-render:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Render
+        uses: render-oss/render-deploy@v1
+        with:
+          render-token: ${{ secrets.RENDER_STAGING_TOKEN }}
+          service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
+          docker-image: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
