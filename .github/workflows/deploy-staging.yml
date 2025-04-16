@@ -99,14 +99,30 @@ jobs:
       #         "clearCache": "clear"
       #       }'
 
-      - name: Deploy to Render
-        uses: gh-actions-workflows/deploy-docker-render@v1.1
-        with:
-          deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
-          render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
-          wait-for-deployment: true
+      # - name: Deploy to Render
+      #   uses: gh-actions-workflows/deploy-docker-render@v1.1
+      #   with:
+      #     deploy-hook: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+      #     render-api-key: ${{ secrets.RENDER_STAGING_TOKEN }}
+      #     wait-for-deployment: true
 
+
+  deploy-to-render:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Render
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "serviceId": "${{ secrets.RENDER_STAGING_SERVICE_ID }}",
+              "image": "${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}"
+            }' \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_STAGING_SERVICE_ID }}/deploys"
           # ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
+
         # uses: render-oss/deploy-docker-render@v1
         # with:
         #   service-id: ${{ secrets.RENDER_STAGING_SERVICE_ID }}
