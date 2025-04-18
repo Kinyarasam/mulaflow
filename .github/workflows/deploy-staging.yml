@@ -26,6 +26,23 @@ jobs:
       
       - name: Build with Maven
         run: mvn clean package -DskipTests
+
+      - name: Create secrets directory
+        run: |
+          mkdir -p docker/compose/staging/secrets
+          echo "Creating application-secrets.properties with environment variables"
+          cat <<EOF > docker/compose/staging/secrets/application-secrets.properties
+          spring.application.name=${{ env.DOCKER_IMAGE }}
+
+          # Database configuration
+          spring.datasource.url=${{ secrets.STAGING_DB_URL }}
+          spring.datasource.username=${{ secrets.STAGING_DB_USERNAME }}
+          spring.datasource.password=${{ secrets.STAGING_DB_PASSWORD }}
+          
+          # Other secrets
+          datadog.api.key=${{ secrets.DATADOG_API_KEY }}
+          EOF
+      
         
       - name: Build Docker image
         run: |
@@ -46,22 +63,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create secrets directory
-        run: |
-          mkdir -p docker/compose/staging/secrets
-          echo "Creating application-secrets.properties with environment variables"
-          cat <<EOF > docker/compose/staging/secrets/application-secrets.properties
-          spring.application.name=mulaflow
-
-          # Database configuration
-          spring.datasource.url=${STAGING_DB_URL}
-          spring.datasource.username=${STAGING_DB_USERNAME}
-          spring.datasource.password=${STAGING_DB_PASSWORD}
-          
-          # Other secrets
-          datadog.api.key=${DATADOG_API_KEY}
-          EOF
-      
       - name: Install Docker Compose
         run: |
           sudo apt-get update \

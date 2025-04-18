@@ -41,7 +41,7 @@ pom.xml.tag
 # Environment
 .env
 application*.yml
-application*.properties
+*-secrets.properties
 secrets
 
 # Others
