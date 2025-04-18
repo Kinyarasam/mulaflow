@@ -2,6 +2,8 @@ services:
   mulaflow:
     image: ${DOCKER_HUB_USERNAME}/${DOCKER_IMAGE}:${DEPLOYMENT_TAG}
     restart: unless-stopped
+    volumes:
+      - ./docker/compose/staging/secrets/application-secrets.properties:/run/secrets/application-secrets.properties
     environment:
       - DD_ENV=staging
       - SPRING_PROFILES_ACTIVE=staging
@@ -10,6 +12,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${STAGING_DB_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${STAGING_DB_PASSWORD}
       - DD_API_KEY=${DATADOG_API_KEY}
+      - SPRING_CONFIG_IMPORT=file:/run/secrets/application-secrets.properties
     # secrets:
     #   - source: app_secrets
     #     target: /run/secrets/application-secrets.properties
@@ -21,5 +24,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
-    volumes:
-      - ./docker/compose/staging/secrets/application-secrets.properties:/run/secrets/application-secrets.properties

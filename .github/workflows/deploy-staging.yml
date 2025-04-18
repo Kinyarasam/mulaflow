@@ -42,6 +42,7 @@ jobs:
           # Other secrets
           datadog.api.key=${{ secrets.DATADOG_API_KEY }}
           EOF
+          chmod 644 docker/compose/staging/secrets/application-secrets.properties
       
         
       - name: Build Docker image
