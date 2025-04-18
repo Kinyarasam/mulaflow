@@ -10,9 +10,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=${STAGING_DB_USERNAME}
       - SPRING_DATASOURCE_PASSWORD=${STAGING_DB_PASSWORD}
       - DD_API_KEY=${DATADOG_API_KEY}
-    secrets:
-      - source: app_secrets
-        target: /run/secrets/application-secrets.properties
+    # secrets:
+    #   - source: app_secrets
+    #     target: /run/secrets/application-secrets.properties
     ports:
       - "8080:8080"
     healthcheck:
@@ -22,8 +22,4 @@ services:
       retries: 3
       start_period: 5s
     volumes:
-      - ./docker/compose/staging/secrets/application-secrets.properties:/etc/secrets/application-secrets.properties
-
-secrets:
-  app_secrets:
-    file: ./secrets/application-secrets.properties
+      - ./docker/compose/staging/secrets/application-secrets.properties:/run/secrets/application-secrets.properties

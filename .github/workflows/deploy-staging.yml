@@ -56,12 +56,25 @@ jobs:
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DEPLOYMENT_TAG }}
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ github.sha }}
 
+      - name: Upload secrets file
+        uses: actions/upload-artifact@v4
+        with:
+          name: secrets
+          path: docker/compose/staging/secrets/application-secrets.properties
+          retention-days: 1
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download secrets file
+        uses: actions/download-artifact@v4
+        with:
+          name: secrets
+          path: docker/compose/staging/secrets/
 
       - name: Install Docker Compose
         run: |
