@@ -21,6 +21,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+    volumes:
+      - ./docker/compose/staging/secrets/application-secrets.properties:/etc/secrets/application-secrets.properties
 
 secrets:
   app_secrets:
