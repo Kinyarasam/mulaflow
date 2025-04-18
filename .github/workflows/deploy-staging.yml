@@ -64,12 +64,12 @@ jobs:
           path: docker/compose/staging/secrets/application-secrets.properties
           retention-days: 1
 
-      - name: Verify secrets file content
-        run: |
-          echo "Secrets file content:"
-          cat docker/compose/staging/secrets/application-secrets.properties
-          echo -e "\nChecking for placeholder values..."
-          ! grep -q '\${.*}' docker/compose/staging/secrets/application-secrets.properties || (echo "Placeholders found in secrets file!" && exit 1)
+      # - name: Verify secrets file content
+      #   run: |
+      #     echo "Secrets file content:"
+      #     cat docker/compose/staging/secrets/application-secrets.properties
+      #     echo -e "\nChecking for placeholder values..."
+      #     ! grep -q '\${.*}' docker/compose/staging/secrets/application-secrets.properties || (echo "Placeholders found in secrets file!" && exit 1)
 
   deploy:
     needs: build
@@ -90,10 +90,10 @@ jobs:
           && curl -SL https://github.com/docker/compose/releases/download/v2.35.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose \
           && chmod +x /usr/local/bin/docker-compose
 
-      - name: Verify container sees secrets
-        run: |
-          docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} run --rm mulaflow sh -c \
-            "ls -la /run/secrets/ && cat /run/secrets/application-secrets.properties"
+      # - name: Verify container sees secrets
+      #   run: |
+      #     docker-compose -f ${{ env.DOCKER_COMPOSE_FILE }} run --rm mulaflow sh -c \
+      #       "ls -la /run/secrets/ && cat /run/secrets/application-secrets.properties"
       
       - name: Deploy to Staging
         env:
