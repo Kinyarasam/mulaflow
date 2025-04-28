@@ -3,7 +3,7 @@ package com.mulaflow.mulaflow.service.auth;
 import java.util.Locale;
 
 import org.springframework.stereotype.Service;
-import org.flywaydb.core.internal.util.StringUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.mulaflow.mulaflow.config.JwtTokenProvider;
