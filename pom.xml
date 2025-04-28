@@ -13,12 +13,14 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>mulaflow</name>
 	<description>A Shopify payment gateway integrating M-Pesa and Stripe for seamless African and global transactions.</description>
-	<url/>
+	<url>https://github.com/kinyarasam/mulaflow</url>
 	<licenses>
 		<license/>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Kinyarasam</name>
+		</developer>
 	</developers>
 	<scm>
 		<connection/>
@@ -118,6 +120,16 @@
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
     	</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
+		</dependency>
 
 	</dependencies>
 
