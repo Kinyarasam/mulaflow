@@ -40,7 +40,7 @@ jobs:
         DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
         DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
         DEPLOYMENT_TAG: ${{ env.DEPLOYMENT_TAG }}
-      run: STAGING_DB_URL=${{ secrets.STAGING_DB_URL }} STAGING_DB_USERNAME=${{ secrets.STAGING_DB_USERNAME }} STAGING_DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }} ENVIROMENT=${{ secrets.ENVIROMENT }} JWT_SECRET=${{ secrets.JWT_SECRET }} JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} mvn -B package --file pom.xml
+      run: STAGING_DB_URL=${{ secrets.STAGING_DB_URL }} STAGING_DB_USERNAME=${{ secrets.STAGING_DB_USERNAME }} STAGING_DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }} ENVIROMENT=${{ secrets.ENVIROMENT }} DEV_TOOLS=${{ secrets.DEV_TOOLS }} LOG_LEVEL=${{ secrets.LOG_LEVEL }} JWT_SECRET=${{ secrets.JWT_SECRET }} JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} EMAIL_HOST=${{ secrets.EMAIL_HOST }} EMAIL_PORT=${{ secrets.EMAIL_PORT }} EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} EMAIL_PROTOCOL=${{ secrets.EMAIL_PROTOCOL }} EMAIL_PROPERTIES_AUTH=${{ secrets.EMAIL_PROPERTIES_AUTH }} EMAIL_PROPERTIES_STARTTLS_ENABLE=${{ secrets.EMAIL_PROPERTIES_STARTTLS_ENABLE }} mvn -B package --file pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
