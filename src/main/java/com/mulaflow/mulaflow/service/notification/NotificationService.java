@@ -1,12 +1,26 @@
 package com.mulaflow.mulaflow.service.notification;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import com.mulaflow.mulaflow.dto.notification.NotificationDTO;
 import com.mulaflow.mulaflow.dto.notification.NotificationRequest;
 import com.mulaflow.mulaflow.dto.notification.NotificationResponse;
+import com.mulaflow.mulaflow.dto.notification.channels.EmailRequest;
+import com.mulaflow.mulaflow.exception.ResourceNotFoundException;
 import com.mulaflow.mulaflow.model.notification.Notification;
+import com.mulaflow.mulaflow.model.notification.NotificationDelivery;
+import com.mulaflow.mulaflow.model.notification.NotificationChannelStatus.DeliveryStatus;
+import com.mulaflow.mulaflow.repository.NotificationDeliveryRepository;
 import com.mulaflow.mulaflow.repository.NotificationRepository;
+import com.mulaflow.mulaflow.service.auth.UserService;
+import com.mulaflow.mulaflow.service.notification.channels.EmailService;
+import com.mulaflow.mulaflow.service.notification.templates.NotificationTemplateEngine;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,49 +32,100 @@ import lombok.extern.slf4j.Slf4j;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    
-    @Async
+    private final NotificationDeliveryRepository deliveryRepository;
+    private final NotificationTemplateEngine templateEngine;
+    private final UserService userService;
+    private final EmailService emailService;
+    private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(5);
+
+    @Transactional
     public NotificationResponse send(NotificationRequest request) {
 
         request.validate();
-        if (request.isPersistInDatabase()) {
-            Notification notification = createNotification(request);
-        }
+        String content = templateEngine.processTemplate(
+            request.getType(),
+            request.getVariables()
+        );
 
-        NotificationResponse response = new NotificationResponse();
-    
-        request.getChannels().forEach(channel -> {
-            try {
-                switch (channel) {
-                    case EMAIL -> sendEmail(request);
-                    case SMS -> sendSMS(request);
-                    case IN_APP -> SendInApp(request);
-                    case PUSH -> sendPush(request);
-                    case WHATSAPP -> sendWhatsApp(request);
-                }
-            } catch (Exception ex) {
-                log.error("Failed to send notification", ex);
-            }
-        });
-        return response;
-    }
-
-    private void sendEmail(NotificationRequest request) {}
-    private void sendSMS(NotificationRequest request) {}
-    private void sendWhatsApp(NotificationRequest request) {}
-    private void SendInApp(NotificationRequest request) {}
-    private void sendPush(NotificationRequest request) {}
-
-    @Transactional
-    private Notification createNotification(NotificationRequest request) {
         Notification notification = Notification.builder()
-                .content(null)
-                .deliverChannels(null)
-                .isRead(false)
-                .recipient(null)
+                .content(content)
+                .deliveryChannels(request.getChannels())
+                .recipient(userService.getUserById(request.getRecipientId()))
                 .build();
 
-        notificationRepository.save(notification);
-        return notification;
+        Notification savedNotification = notificationRepository.save(notification);
+
+        asyncExecutor.submit(() -> processDeliveries(savedNotification));
+    
+        return NotificationResponse.builder()
+                .notificationId(savedNotification.getId())
+                .type(savedNotification.getType().toString())
+                .status("PROCESSING")
+                .build();
+    }
+
+    @Transactional
+    public void processPendingDeliveries() {
+        List<NotificationDelivery> pendingDeliveries = deliveryRepository.findByStatus(DeliveryStatus.PENDING);
+        
+        pendingDeliveries.forEach(this::processDelivery);
+    }
+
+    @Async
+    private void processDeliveries(Notification notification) {
+        notification.getDeliveries().forEach(delivery -> {
+            try {
+                processDelivery(delivery);
+            } catch (Exception ex) {
+                log.error("failed to process delivery {} for notification {}",
+                    delivery.getId(), notification.getId(), ex);
+            }
+        });
+    }
+
+    private void processDelivery(NotificationDelivery delivery) {
+        try {
+            String externalId = switch (delivery.getChannel()) {
+                case EMAIL -> sendEmail(delivery);
+                case SMS -> sendSMS(delivery);
+                case WHATSAPP -> sendWhatsApp(delivery);
+                case PUSH -> sendPush(delivery);
+                case IN_APP -> sendInApp(delivery);
+            };
+
+            delivery.setExternalId(externalId);
+            delivery.setSentAt(Instant.now());
+            delivery.setStatus(DeliveryStatus.SENT);
+        } catch (Exception e) {
+            delivery.setErrorMessage(e.getMessage());
+            delivery.setStatus(DeliveryStatus.FAILED);
+            delivery.setFailedAt(Instant.now());
+        }
+    }
+
+    private String sendEmail(NotificationDelivery request) {
+        emailService.send(
+            EmailRequest.builder()
+                .subject(request.getNotification().getType().getDefaultTitle())
+                .receiptId(request.getNotification().getRecipient().getId())
+                .htmlContent(request.getNotification().getContent())
+                .build()
+        );
+        return "";
+    }
+    private String sendSMS(NotificationDelivery request) {return "";}
+    private String sendWhatsApp(NotificationDelivery request) {return "";}
+    private String sendInApp(NotificationDelivery request) {return "";}
+    private String sendPush(NotificationDelivery request) {return "";}
+
+
+    @Transactional
+    public Notification getNotificationById(String notificationId) {
+        return notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+    }
+
+    public NotificationDTO mapToDTO(Notification notification) {
+        return NotificationDTO.builder().build();
     }
 }

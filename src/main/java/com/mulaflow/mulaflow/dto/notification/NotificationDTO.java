@@ -15,10 +15,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotificationResponse {
+public class NotificationDTO {
     private String notificationId;
-    private String type;
-    private String status;
     private Map<NotificationChannel, DeliveryStatus> channelStatuses;
     private Instant sentAt;
 }
