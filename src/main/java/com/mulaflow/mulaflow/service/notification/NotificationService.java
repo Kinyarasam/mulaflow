@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -46,17 +47,30 @@ public class NotificationService {
             request.getType(),
             request.getVariables()
         );
-
         Notification notification = Notification.builder()
-                .content(content)
-                .deliveryChannels(request.getChannels())
-                .recipient(userService.getUserById(request.getRecipientId()))
-                .build();
-
+            .recipient(userService.getUserById(request.getRecipientId()))
+            .type(request.getType())
+            .content(content)
+            .deliveryChannels(request.getChannels())
+            .recipient(userService.getUserById(request.getRecipientId()))
+            .build();
+        
         Notification savedNotification = notificationRepository.save(notification);
 
+        // Save the notification deliveries
+        List<NotificationDelivery> deliveries = notification.getDeliveryChannels().stream()
+            .map(channel -> NotificationDelivery.builder()
+                .notification(notification)
+                .channel(channel)
+                .status(DeliveryStatus.PENDING)
+                .build())
+            .collect(Collectors.toList());
+        
+        deliveryRepository.saveAll(deliveries);
+        notification.setDeliveries(deliveries);
+
         asyncExecutor.submit(() -> processDeliveries(savedNotification));
-    
+
         return NotificationResponse.builder()
                 .notificationId(savedNotification.getId())
                 .type(savedNotification.getType().toString())
@@ -100,6 +114,9 @@ public class NotificationService {
             delivery.setErrorMessage(e.getMessage());
             delivery.setStatus(DeliveryStatus.FAILED);
             delivery.setFailedAt(Instant.now());
+        } finally {
+            log.info("deliver {} updated.", delivery.getId());
+            deliveryRepository.saveAndFlush(delivery);
         }
     }
 
