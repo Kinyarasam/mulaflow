@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationDelivery extends BaseModel {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = Notification.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_id", nullable = false)
     private Notification notification;
 

@@ -6,21 +6,25 @@ import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.mulaflow.mulaflow.model.BaseModel;
-import com.mulaflow.mulaflow.model.notification.NotificationChannelStatus.DeliveryStatus;
 import com.mulaflow.mulaflow.model.user.User;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,12 +42,13 @@ public class Notification extends BaseModel {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "recipient_id")
     private User recipient;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
-
 
     @ElementCollection
     @Enumerated
@@ -53,17 +58,4 @@ public class Notification extends BaseModel {
 
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NotificationDelivery> deliveries;
-
-    @PostPersist
-    private void createDeliveryRecords() {
-        if (this.deliveryChannels != null) {
-            this.deliveries = this.deliveryChannels.stream()
-                    .map(channel -> NotificationDelivery.builder()
-                        .notification(this)
-                        .channel(channel)
-                        .status(DeliveryStatus.PENDING)
-                        .build())
-                    .collect(Collectors.toList());
-        }
-    }
 }

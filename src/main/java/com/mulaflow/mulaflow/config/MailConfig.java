@@ -58,7 +58,7 @@ public class MailConfig extends BaseConfig {
         props.put("mail.smtp.ssl.trust", host);
 
         if ("local".equals(getEnvironment())) {
-            props.put("mail.debug", true);
+            props.put("mail.debug", false);
         }
 
         return mailSenderImpl;
